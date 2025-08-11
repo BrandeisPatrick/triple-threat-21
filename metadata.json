@@ -1,0 +1,6 @@
+{
+  "name": "Triple Threat 21",
+  "description": "A sophisticated Blackjack (21) game where you play three hands simultaneously against an AI opponent. All three games share a single 52-card deck, and you can track every card as it's played.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
