@@ -17,6 +17,8 @@ import { TurnHistorySidebar } from './components/TurnHistorySidebar';
 import { TurnIndicator } from './components/TurnIndicator';
 import { OverbustIntro } from './components/OverbustIntro';
 import StartScreen from './components/StartScreen';
+import { MobileInfoPanel } from './components/MobileInfoPanel';
+import { useMobileLayout } from './hooks/useMobileLayout';
 
 const isTerminalStatus = (status: GameStatus) => {
     return [
@@ -40,6 +42,7 @@ const defaultStats: GameStatsData = {
 const MAX_HITS_PER_TURN = 2;
 
 const App: React.FC = () => {
+  const { isMobile } = useMobileLayout();
   const [deck, setDeck] = useState<Card[]>([]);
   const [discardPile, setDiscardPile] = useState<Card[]>([]);
   const [gameStates, setGameStates] = useState<GameState[]>([]);
@@ -53,6 +56,8 @@ const App: React.FC = () => {
   const [focusedGameId, setFocusedGameId] = useState<number>(1);
   const [turnHistory, setTurnHistory] = useState<HistoryEntry[]>([]);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
+  const [showMobileInfo, setShowMobileInfo] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [specialCardsAdded, setSpecialCardsAdded] = useState(false);
   const [hitsThisTurn, setHitsThisTurn] = useState(0);
   const [currentWinStreak, setCurrentWinStreak] = useState(0);
@@ -440,24 +445,70 @@ const App: React.FC = () => {
     <>
       {showOverbustIntro && <OverbustIntro onClose={() => setShowOverbustIntro(false)} />}
 
-      <main className="min-h-screen flex flex-col justify-between p-2 sm:p-4 text-white font-sans relative">
-        <div className="flex-grow">
-          <header className="flex justify-between items-center mb-4">
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">Triple Threat <span className="text-cyan-400">21</span></h1>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setIsHistoryVisible(true)} className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/80 transition-colors"><HistoryIcon/></button>
-              <button onClick={() => setShowInfoPanel(true)} className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/80 transition-colors"><InfoIcon/></button>
+      <main className="min-h-screen flex flex-col text-white font-sans relative">
+        {isMobile ? (
+          // Mobile optimized layout
+          <div className="flex-grow p-3">
+            {/* Mobile Header */}
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex flex-col">
+                <h1 className="text-lg font-extrabold tracking-tight text-white">Triple Threat <span className="text-cyan-400">21</span></h1>
+                <div className="text-xs text-slate-400">Round {roundNumberRef.current} • {turnPhase === 'PLAYER' ? 'Your Turn' : turnPhase === 'AI' ? 'AI Playing' : turnPhase === 'ROUND_OVER' ? 'Round Complete' : 'Preparing'}</div>
+              </div>
+              <button 
+                onClick={() => setShowMobileInfo(true)} 
+                className="p-3 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 transition-all shadow-lg border border-slate-600/50"
+              >
+                <InfoIcon/>
+              </button>
             </div>
-          </header>
-          
-          <Scoreboard scores={roundScores} />
-          <TurnIndicator roundNumber={roundNumberRef.current} turnPhase={turnPhase} />
 
-          <DesktopHandSummary gameStates={gameStates} focusedGameId={focusedGameId} onFocusChange={setFocusedGameId} />
+            {/* Mobile Score Strip */}
+            <div className="flex justify-center mb-3">
+              <div className="flex bg-slate-800/60 backdrop-blur-sm rounded-full px-4 py-2 gap-6 border border-slate-700/50">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-bold text-green-400">{roundScores.player}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                  <span className="text-sm font-bold text-slate-400">{roundScores.draws}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span className="text-sm font-bold text-red-400">{roundScores.ai}</span>
+                </div>
+                {currentWinStreak > 0 && (
+                  <div className="flex items-center gap-1 ml-2 px-2 py-0.5 bg-purple-600/30 rounded-full">
+                    <span className="text-xs">🔥</span>
+                    <span className="text-xs font-bold text-purple-400">{currentWinStreak}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Desktop layout (unchanged)
+          <div className="flex-grow p-2 sm:p-4">
+            <header className="flex justify-between items-center mb-4">
+              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">Triple Threat <span className="text-cyan-400">21</span></h1>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setIsHistoryVisible(true)} className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/80 transition-colors"><HistoryIcon/></button>
+                <button onClick={() => setShowInfoPanel(true)} className="p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/80 transition-colors"><InfoIcon/></button>
+              </div>
+            </header>
+            
+            <Scoreboard scores={roundScores} />
+            <TurnIndicator roundNumber={roundNumberRef.current} turnPhase={turnPhase} />
+          </div>
+        )}
+        
+        <div className={isMobile ? "px-3 pb-3" : "px-2 sm:px-4"}>
+          {!isMobile && <DesktopHandSummary gameStates={gameStates} focusedGameId={focusedGameId} onFocusChange={setFocusedGameId} />}
           <GameSwitcher gameStates={gameStates} focusedGameId={focusedGameId} onFocusChange={setFocusedGameId} />
 
           {focusedGameState && (
-            <div className="mt-4 animate-fade-in-scale">
+            <div className={isMobile ? "mt-2 animate-fade-in-scale" : "mt-4 animate-fade-in-scale"}>
               <Gameboard 
                   gameState={focusedGameState} 
                   onHit={handleHit} 
@@ -469,11 +520,11 @@ const App: React.FC = () => {
           )}
           
           {turnPhase === 'ROUND_OVER' && !isGameOver && (
-              <div className="my-8 text-center animate-fade-in-down">
+              <div className={isMobile ? "my-4 text-center animate-fade-in-down" : "my-8 text-center animate-fade-in-down"}>
                   {roundWinner && <RoundResultBanner winner={roundWinner} />}
                   <button
                       onClick={() => dealRound(deck)}
-                      className="mt-4 px-8 py-3 bg-gradient-to-br from-teal-500 to-cyan-600 font-bold text-lg rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transform transition-all duration-300 ease-in-out"
+                      className={isMobile ? "mt-3 px-6 py-3 bg-gradient-to-br from-teal-500 to-cyan-600 font-bold text-base rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transform transition-all duration-300 ease-in-out" : "mt-4 px-8 py-3 bg-gradient-to-br from-teal-500 to-cyan-600 font-bold text-lg rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transform transition-all duration-300 ease-in-out"}
                   >
                       Next Round
                   </button>
@@ -481,13 +532,32 @@ const App: React.FC = () => {
           )}
         </div>
         
-        <div className="flex-shrink-0">
-          <DeckStatus deck={deck} discardPile={discardPile} />
-        </div>
+        {!isMobile && (
+          <div className="flex-shrink-0">
+            <DeckStatus deck={deck} discardPile={discardPile} />
+          </div>
+        )}
       </main>
 
-      {showInfoPanel && <InfoTabs onClose={() => setShowInfoPanel(false)} />}
-      <TurnHistorySidebar history={turnHistory} isOpen={isHistoryVisible} onClose={() => setIsHistoryVisible(false)} />
+      {!isMobile && showInfoPanel && <InfoTabs onClose={() => setShowInfoPanel(false)} />}
+      {!isMobile && <TurnHistorySidebar history={turnHistory} isOpen={isHistoryVisible} onClose={() => setIsHistoryVisible(false)} />}
+      
+      {isMobile && (
+        <MobileInfoPanel
+          isOpen={showMobileInfo}
+          onClose={() => setShowMobileInfo(false)}
+          onShowRules={() => setShowRules(true)}
+          deck={deck}
+          discardPile={discardPile}
+          history={turnHistory}
+          roundScores={roundScores}
+          gameStates={gameStates}
+          currentWinStreak={currentWinStreak}
+          maxWinStreak={maxWinStreak}
+        />
+      )}
+
+      {showRules && <InfoTabs onClose={() => setShowRules(false)} />}
     </>
   );
 };

@@ -10,6 +10,7 @@ import { Leaderboard } from './Leaderboard';
 
 interface InfoTabsProps {
   onClose: () => void;
+  isInitialIntro?: boolean;
 }
 
 type ActiveTab = 'game' | 'basic' | 'leaderboard';
@@ -46,7 +47,7 @@ const VisualRuleItem: React.FC<{ title?: string; description: string; visual: Re
 );
 
 
-export const InfoTabs: React.FC<InfoTabsProps> = ({ onClose }) => {
+export const InfoTabs: React.FC<InfoTabsProps> = ({ onClose, isInitialIntro = false }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('game');
   const [leaderboardScores, setLeaderboardScores] = useState<LeaderboardEntry[]>([]);
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
@@ -223,13 +224,15 @@ export const InfoTabs: React.FC<InfoTabsProps> = ({ onClose }) => {
             <TabButton tabId="leaderboard">Leaderboard</TabButton>
           </div>
           
-          <button
-            onClick={onClose}
-            aria-label="Close rules"
-            className="absolute top-3 right-3 p-1 text-slate-400 hover:text-white transition-colors"
-          >
-            <CloseIcon />
-          </button>
+          {!isInitialIntro && (
+            <button
+              onClick={onClose}
+              aria-label="Close rules"
+              className="absolute top-3 right-3 p-1 text-slate-400 hover:text-white transition-colors"
+            >
+              <CloseIcon />
+            </button>
+          )}
           
           <div className="text-sm max-h-[70vh] overflow-y-auto pr-2">
             {activeTab === 'game' && <GameRules />}
@@ -244,6 +247,17 @@ export const InfoTabs: React.FC<InfoTabsProps> = ({ onClose }) => {
               </div>
             )}
           </div>
+          
+          {isInitialIntro && (
+            <div className="mt-6 pt-4 border-t border-slate-700">
+              <button
+                onClick={onClose}
+                className="w-full px-6 py-3 bg-gradient-to-br from-teal-500 to-cyan-600 font-bold text-lg rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transform transition-all duration-300 ease-in-out text-white"
+              >
+                🎮 Start Playing!
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
