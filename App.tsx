@@ -16,6 +16,7 @@ import { DesktopHandSummary } from './components/DesktopHandSummary';
 import { TurnHistorySidebar } from './components/TurnHistorySidebar';
 import { TurnIndicator } from './components/TurnIndicator';
 import { OverbustIntro } from './components/OverbustIntro';
+import StartScreen from './components/StartScreen';
 
 const isTerminalStatus = (status: GameStatus) => {
     return [
@@ -57,6 +58,7 @@ const App: React.FC = () => {
   const [currentWinStreak, setCurrentWinStreak] = useState(0);
   const [maxWinStreak, setMaxWinStreak] = useState(0);
   const [showOverbustIntro, setShowOverbustIntro] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
   const isAiTurnRunning = useRef(false);
 
   const logHistory = useCallback((entry: HistoryEntryPayload) => {
@@ -281,10 +283,10 @@ const App: React.FC = () => {
   }, [gamesInitialized, logHistory, determineTableWinner, currentWinStreak]);
 
   useEffect(() => {
-    if (!gamesInitialized) {
+    if (!gamesInitialized && gameStarted) {
       dealRound(createDeck());
     }
-  }, [gamesInitialized, dealRound]);
+  }, [gamesInitialized, gameStarted, dealRound]);
 
   // This hook handles the transition from the player's turn to the AI's turn.
   useEffect(() => {
@@ -401,6 +403,10 @@ const App: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deck, turnPhase, gameStates.find(gs => gs.status === GameStatus.PlayerTurn)?.playerHand.length]);
 
+  const handleStartGame = () => {
+    setGameStarted(true);
+  };
+
   const handlePlayAgain = () => {
     setDeck(shuffleDeck(createDeck()));
     setDiscardPile([]);
@@ -416,8 +422,13 @@ const App: React.FC = () => {
     setHitsThisTurn(0);
     setCurrentWinStreak(0);
     setMaxWinStreak(0);
+    setGameStarted(false);
     roundNumberRef.current = 1;
   };
+
+  if (!gameStarted) {
+    return <StartScreen onStartGame={handleStartGame} />;
+  }
 
   if (isGameOver) {
     return <GameOver scores={roundScores} onPlayAgain={handlePlayAgain} maxWinStreak={maxWinStreak} />;

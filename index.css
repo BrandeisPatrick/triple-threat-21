@@ -76,3 +76,28 @@ button {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
 }
+
+/* Simple card click animation with tilt */
+@keyframes cardClick {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1.1) rotate(-8deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.15) rotate(12deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+.card-click {
+  animation: cardClick 0.7s ease-out forwards;
+  transform-origin: center center;
+}
